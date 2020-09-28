@@ -1,5 +1,5 @@
 ﻿using F4ST.Data;
-using F4ST.Data.Dapper;
+using F4ST.Data.RavenDB;
 using Newtonsoft.Json;
 
 namespace Test.Data

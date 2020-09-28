@@ -13,10 +13,12 @@ namespace F4ST.Data
 {
     public class DataInstaller : IIoCInstaller
     {
-        internal static readonly Dictionary<string, DbConnectionModel> ConnectionModels = new Dictionary<string, DbConnectionModel>();
+        internal static Dictionary<string, DbConnectionModel> ConnectionModels ;
 
         public void Install(WindsorContainer container, IMapper mapper)
         {
+            ConnectionModels = new Dictionary<string, DbConnectionModel>();
+
             LoadDbProviders(container);
         }
 
@@ -42,8 +44,8 @@ namespace F4ST.Data
 
                 container.Register(Component
                     .For<IRepository>()
-                    .ImplementedBy(provider.GetRepository)
                     .Named($"Rep_{cc.Name}")
+                    .ImplementedBy(provider.GetRepository)
                     .LifestyleTransient());
             }
         }

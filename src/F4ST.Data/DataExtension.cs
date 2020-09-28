@@ -4,6 +4,7 @@ using Castle.MicroKernel;
 using Castle.MicroKernel.Lifestyle;
 using Castle.Windsor;
 using F4ST.Common.Containers;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace F4ST.Data
 {

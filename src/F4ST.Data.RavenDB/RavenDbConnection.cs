@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -32,10 +31,10 @@ namespace F4ST.Data.RavenDB
 
                 Conventions =
                 {
-                    FindCollectionName = type=>
+                    FindCollectionName = type =>
                     {
                         _tableTypes ??= Globals.GetClassTypeWithAttribute<TableAttribute>();
-                        
+
                         if (_tableTypes.All(t => t != type))
                             return DocumentConventions.DefaultGetCollectionName(type);
 
@@ -44,8 +43,7 @@ namespace F4ST.Data.RavenDB
                             ? DocumentConventions.DefaultGetCollectionName(type)
                             : name;
                     }
-
-        }
+                }
             };
 
             _connection.Initialize();

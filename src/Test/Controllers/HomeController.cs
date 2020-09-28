@@ -5,9 +5,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
-using F4ST.Common.Containers;
 using F4ST.Data;
-using F4ST.Data.Dapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Test.Data;
@@ -28,7 +26,8 @@ namespace Test.Controllers
 
         public async Task<IActionResult> Index()
         {
-            using (var rep = (DapperRepository)_provider.GetRepository("DB"))
+            //using (var rep = (DapperRepository)_provider.GetRepository("DB"))
+            using (var rep = _provider.GetRepository("DB"))
             {
                 //var count = await rep.Count<TestEntity>();
                 
@@ -59,9 +58,9 @@ namespace Test.Controllers
                 var items = new List<int>{1,2,4};
 
                 //var a=await rep.Find<TestEntity>(c => items.Contains(c.Id) /*&& c.BankTitle.Contains(bb)*/);
-                var b=await rep.Find<TestEntity, CountryEntity>(c => items.Contains(c.Id),c=>c.CountryId,
+                /*var b=await rep.Find<TestEntity, CountryEntity>(c => items.Contains(c.Id),c=>c.CountryId,
                     c=>c.Country,o=>o.Id,1,10,false);
-
+                    */
             }
 
             return View();

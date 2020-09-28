@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using F4ST.Data;
-using F4ST.Data.Dapper;
+using F4ST.Data.RavenDB;
 
 namespace Test.Data
 {

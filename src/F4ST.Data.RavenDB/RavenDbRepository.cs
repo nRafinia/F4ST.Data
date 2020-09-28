@@ -15,23 +15,22 @@ namespace F4ST.Data.RavenDB
     public class RavenDbRepository : IRepository
     {
         private readonly IRavenDbConnection _dbConnection;
-        private readonly IAsyncDocumentSession _session;
+        public readonly IAsyncDocumentSession Session;
 
         public RavenDbRepository(DbConnectionModel config)
         {
             _dbConnection = new RavenDbConnection(config);
-            _session = _dbConnection.Connection.OpenAsyncSession();
-
+            Session = _dbConnection.Connection.OpenAsyncSession();
         }
 
         public void Dispose()
         {
-            _session.Dispose();
+            Session.Dispose();
         }
 
         public async Task SaveChanges()
         {
-            await _session.SaveChangesAsync();
+            await Session.SaveChangesAsync();
         }
 
         #region Get
@@ -40,13 +39,13 @@ namespace F4ST.Data.RavenDB
         public Task<T> Get<T>(object id, CancellationToken cancellationToken = default)
             where T : BaseEntity
         {
-            return _session.LoadAsync<T>((string) id, cancellationToken);
+            return Session.LoadAsync<T>((string) id, cancellationToken);
         }
 
         public async Task<IEnumerable<T>> Get<T>(IEnumerable<object> ids, CancellationToken cancellationToken = default)
             where T : BaseEntity
         {
-            var res = await _session.LoadAsync<T>((IEnumerable<string>) ids, cancellationToken);
+            var res = await Session.LoadAsync<T>((IEnumerable<string>) ids, cancellationToken);
             return res.Select(t => t.Value);
         }
 
@@ -56,11 +55,11 @@ namespace F4ST.Data.RavenDB
             where T : BaseEntity
             where TIncType : BaseEntity
         {
-            var res = await _session
+            var res = await Session
                 .Include(field.Cast<T, object, string>())
                 .LoadAsync<T>((string) id, cancellationToken);
 
-            var inc = await _session.LoadAsync<TIncType>(res.GetPropertyValue<T, string>(field.Name),
+            var inc = await Session.LoadAsync<TIncType>(res.GetPropertyValue<T, string>(field.Name),
                 cancellationToken);
 
             res.SetPropertyValue(targetField, inc);
@@ -82,13 +81,13 @@ namespace F4ST.Data.RavenDB
             Expression<Func<T, IEnumerable<TIncType>>> targetField, CancellationToken cancellationToken = default)
             where T : BaseEntity
         {
-            var res = await _session
+            var res = await Session
                 .Include(field)
                 .LoadAsync<T>(id, cancellationToken);
 
             var keys = res.GetPropertyValue(field);
 
-            var inc = await _session.LoadAsync<TIncType>(keys, cancellationToken);
+            var inc = await Session.LoadAsync<TIncType>(keys, cancellationToken);
 
             var v = inc.Select(p => p.Value).ToList().AsEnumerable();
 
@@ -104,16 +103,16 @@ namespace F4ST.Data.RavenDB
             where TIncType1 : BaseEntity
             where TIncType2 : BaseEntity
         {
-            var res = await _session
+            var res = await Session
                 .Include(field1.Cast<T, object, string>())
                 .Include(field2.Cast<T, object, string>())
                 .LoadAsync<T>(id, cancellationToken);
 
-            var inc1 = await _session.LoadAsync<TIncType1>(res.GetPropertyValue<T, string>(field1.Name),
+            var inc1 = await Session.LoadAsync<TIncType1>(res.GetPropertyValue<T, string>(field1.Name),
                 cancellationToken);
             res.SetPropertyValue(targetField1, inc1);
 
-            var inc2 = await _session.LoadAsync<TIncType2>(res.GetPropertyValue<T, string>(field2.PropertyName()),
+            var inc2 = await Session.LoadAsync<TIncType2>(res.GetPropertyValue<T, string>(field2.PropertyName()),
                 cancellationToken);
             res.SetPropertyValue(targetField2, inc2);
 
@@ -128,7 +127,7 @@ namespace F4ST.Data.RavenDB
         public Task Add<T>(T entity, CancellationToken cancellationToken = default)
             where T : BaseEntity
         {
-            return _session.StoreAsync(entity, cancellationToken);
+            return Session.StoreAsync(entity, cancellationToken);
         }
 
         /// <inheritdoc />
@@ -155,7 +154,7 @@ namespace F4ST.Data.RavenDB
             if (string.IsNullOrWhiteSpace(id))
                 throw new Exception("Id not found");
 
-            return _session.StoreAsync(entity, id, cancellationToken);
+            return Session.StoreAsync(entity, id, cancellationToken);
         }
 
         /// <inheritdoc />
@@ -189,7 +188,7 @@ namespace F4ST.Data.RavenDB
             Expression<Func<T, TField>> field, TField value, CancellationToken cancellationToken = default)
             where T : BaseEntity
         {
-            var items = await _session.Query<T>().Where(filter, true).ToListAsync(cancellationToken);
+            var items = await Session.Query<T>().Where(filter, true).ToListAsync(cancellationToken);
             foreach (var item in items)
             {
                 item.SetPropertyValue(field, value);
@@ -206,14 +205,14 @@ namespace F4ST.Data.RavenDB
         public void Delete<T>(object id)
             where T : BaseEntity
         {
-            _session.Delete(id);
+            Session.Delete(id);
         }
 
         /// <inheritdoc />
         public async Task Delete<T>(T entity, CancellationToken cancellationToken = default)
             where T : BaseEntity
         {
-            _session.Delete(entity);
+            Session.Delete(entity);
         }
 
         /// <inheritdoc />
@@ -221,7 +220,7 @@ namespace F4ST.Data.RavenDB
             where T : BaseEntity
         {
             //await _dbConnection.Connection.Operations.SendAsync(new DeleteByQueryOperation<T>(filter));
-            var items = await _session.Query<T>().Where(filter, true).ToListAsync(cancellationToken);
+            var items = await Session.Query<T>().Where(filter, true).ToListAsync(cancellationToken);
             foreach (var item in items)
             {
                 await Delete(item, cancellationToken);
@@ -232,7 +231,7 @@ namespace F4ST.Data.RavenDB
         public async Task DeleteAll<T>(CancellationToken cancellationToken = default)
             where T : BaseEntity
         {
-            var items = await _session.Query<T>().ToListAsync(cancellationToken);
+            var items = await Session.Query<T>().ToListAsync(cancellationToken);
             foreach (var item in items)
             {
                 await Delete(item, cancellationToken);
@@ -248,7 +247,7 @@ namespace F4ST.Data.RavenDB
             CancellationToken cancellationToken = default)
             where T : BaseEntity
         {
-            return await _session.Query<T>().Where(filter, true).ToListAsync(cancellationToken);
+            return await Session.Query<T>().Where(filter, true).ToListAsync(cancellationToken);
         }
 
         /// <inheritdoc />
@@ -307,7 +306,7 @@ namespace F4ST.Data.RavenDB
             string order, int pageIndex, int size, bool isDescending, CancellationToken cancellationToken = default)
             where T : BaseEntity
         {
-            var items = _session.Query<T>().Where(filter, true);
+            var items = Session.Query<T>().Where(filter, true);
             var oItems = !isDescending
                 ? items.OrderBy(order)
                 : items.OrderByDescending(order);
@@ -323,7 +322,7 @@ namespace F4ST.Data.RavenDB
             where T : BaseEntity
             where TIncType : BaseEntity
         {
-            var items = _session
+            var items = Session
                 .Query<T>().Where(filter, true)
                 .Include(field);
 
@@ -339,7 +338,7 @@ namespace F4ST.Data.RavenDB
 
             var incFieldValues = res.Select(field.Compile()).Cast<string>().ToList();
 
-            var resInc = await _session.LoadAsync<TIncType>(incFieldValues, cancellationToken);
+            var resInc = await Session.LoadAsync<TIncType>(incFieldValues, cancellationToken);
 
             foreach (var item in res)
             {
@@ -363,7 +362,7 @@ namespace F4ST.Data.RavenDB
         public async Task<long> Count<T>(CancellationToken cancellationToken = default)
             where T : BaseEntity
         {
-            return await _session.Query<T>().CountAsync(cancellationToken);
+            return await Session.Query<T>().CountAsync(cancellationToken);
         }
 
         /// <inheritdoc />
@@ -371,21 +370,21 @@ namespace F4ST.Data.RavenDB
             CancellationToken cancellationToken = default)
             where T : BaseEntity
         {
-            return await _session.Query<T>().CountAsync(filter, cancellationToken);
+            return await Session.Query<T>().CountAsync(filter, cancellationToken);
         }
 
         /// <inheritdoc />
         public Task<bool> Any<T>(CancellationToken cancellationToken = default)
             where T : BaseEntity
         {
-            return _session.Query<T>().AnyAsync(cancellationToken);
+            return Session.Query<T>().AnyAsync(cancellationToken);
         }
 
         /// <inheritdoc />
         public Task<bool> Any<T>(Expression<Func<T, bool>> filter, CancellationToken cancellationToken = default)
             where T : BaseEntity
         {
-            return _session.Query<T>().AnyAsync(filter, cancellationToken);
+            return Session.Query<T>().AnyAsync(filter, cancellationToken);
         }
 
         #endregion
@@ -397,7 +396,7 @@ namespace F4ST.Data.RavenDB
             CancellationToken cancellationToken = default)
             where T : BaseEntity
         {
-            return _session.Query<T>()
+            return Session.Query<T>()
                 .Where(filter, true)
                 .OrderByDescending(field)
                 .FirstOrDefaultAsync(cancellationToken);
@@ -415,7 +414,7 @@ namespace F4ST.Data.RavenDB
             CancellationToken cancellationToken = default)
             where T : BaseEntity
         {
-            return _session.Query<T>()
+            return Session.Query<T>()
                 .Where(filter, true)
                 .OrderBy(field)
                 .FirstOrDefaultAsync(cancellationToken);
